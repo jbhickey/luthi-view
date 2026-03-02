@@ -1,0 +1,232 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-dark: #0f0f1a;
+  --bg-mid: #1a1a2e;
+  --bg-light: #25253d;
+  --text: #e0e0e0;
+  --text-dim: #888;
+  --accent: #c4a265;
+  --accent-hover: #d4b275;
+  --border: #333355;
+  --measure-color: #ff4466;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg-dark);
+  color: var(--text);
+  overflow: hidden;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Toolbar */
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--bg-light);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.toolbar-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  margin: 0 6px;
+}
+
+.toolbar-btn {
+  padding: 5px 12px;
+  background: var(--bg-mid);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.toolbar-btn:hover {
+  background: var(--bg-light);
+  border-color: var(--accent);
+}
+
+.toolbar-btn.active {
+  background: var(--accent);
+  color: var(--bg-dark);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+/* Viewport */
+#viewport-container {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+#viewport {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Editor panel (Phase 4) */
+#editor-panel {
+  width: 400px;
+  background: var(--bg-dark);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+#editor-panel.hidden {
+  display: none;
+}
+
+/* Status bar */
+#status-bar {
+  padding: 4px 12px;
+  background: var(--bg-light);
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+/* Drag-drop overlay */
+.drop-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(196, 162, 101, 0.15);
+  border: 3px dashed var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.drop-overlay.hidden {
+  display: none;
+}
+
+.drop-message {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--accent);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Measurement labels */
+.measurement-label {
+  background: rgba(255, 68, 102, 0.9);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Quad view labels */
+.view-label {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* ScadEditor */
+#scad-textarea {
+  flex: 1;
+  background: var(--bg-dark);
+  color: var(--text);
+  border: none;
+  padding: 12px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 13px;
+  resize: none;
+  outline: none;
+}
+
+#scad-controls {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--bg-light);
+  border-top: 1px solid var(--border);
+}
+
+#scad-controls button {
+  padding: 5px 16px;
+  background: var(--accent);
+  color: var(--bg-dark);
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#scad-controls button:hover {
+  background: var(--accent-hover);
+}
+
+#scad-status {
+  font-size: 12px;
+  color: var(--text-dim);
+  align-self: center;
+}
+
+/* Parameter sliders (Phase 4) */
+.param-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+}
+
+.param-row label {
+  font-size: 12px;
+  min-width: 100px;
+  color: var(--text-dim);
+}
+
+.param-row input[type="range"] {
+  flex: 1;
+}
+
+.param-row .param-value {
+  font-family: monospace;
+  font-size: 12px;
+  min-width: 50px;
+  text-align: right;
+}
