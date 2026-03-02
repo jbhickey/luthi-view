@@ -92,12 +92,13 @@ toolbar.on('openScad', () => {
   });
 });
 
-// Load sample STL from public/ if present
+// Load sample STL from public/models/ if present
+const base = import.meta.env.BASE_URL;
 const sampleModels = ['chanter.stl', 'sample.stl'];
 for (const name of sampleModels) {
-  fetch(`/models/${name}`, { method: 'HEAD' }).then((res) => {
-    if (res.ok) {
-      stlLoader.loadFromURL(`/models/${name}`, name);
+  fetch(`${base}models/${name}`, { method: 'HEAD' }).then((res) => {
+    if (res.ok && res.status === 200) {
+      stlLoader.loadFromURL(`${base}models/${name}`, name);
     }
   }).catch(() => {});
 }

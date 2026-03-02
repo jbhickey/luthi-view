@@ -92,6 +92,7 @@ html, body {
   flex: 1;
   position: relative;
   overflow: hidden;
+  min-height: 0;
 }
 
 /* Editor panel (Phase 4) */

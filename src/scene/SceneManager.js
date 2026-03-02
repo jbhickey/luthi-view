@@ -7,17 +7,29 @@ export class SceneManager {
     this.container = container;
     this.currentModel = null;
     this.onModelLoaded = null;
+    this._started = false;
 
     this._initScene();
-    this._initRenderer();
-    this._initCSS2DRenderer();
-    this._initCamera();
-    this._initControls();
     this._initLights();
     this._initHelpers();
-    this._animate();
 
-    window.addEventListener('resize', () => this._onResize());
+    // Defer renderer init until container has actual dimensions
+    const tryInit = () => {
+      const w = this.container.clientWidth;
+      const h = this.container.clientHeight;
+      if (w > 0 && h > 0) {
+        this._initRenderer();
+        this._initCSS2DRenderer();
+        this._initCamera();
+        this._initControls();
+        this._animate();
+        this._started = true;
+        window.addEventListener('resize', () => this._onResize());
+      } else {
+        requestAnimationFrame(tryInit);
+      }
+    };
+    tryInit();
   }
 
   _initScene() {
@@ -112,6 +124,10 @@ export class SceneManager {
     this.orthoCamera.top = frustumSize / 2;
     this.orthoCamera.bottom = -frustumSize / 2;
     this.orthoCamera.updateProjectionMatrix();
+  }
+
+  get ready() {
+    return this._started;
   }
 
   addModel(geometry) {
