@@ -1,8 +1,13 @@
 import { SceneManager } from './scene/SceneManager.js';
 import { STLFileLoader } from './loaders/STLFileLoader.js';
+import { GCodeFileLoader } from './loaders/GCodeFileLoader.js';
 import { Toolbar } from './ui/Toolbar.js';
 import { MeasurementTool } from './measurement/MeasurementTool.js';
 import { OrthographicViews } from './views/OrthographicViews.js';
+import { ToolpathRenderer } from './cnc/ToolpathRenderer.js';
+import { StockSimulator } from './cnc/StockSimulator.js';
+import { SimulationController } from './cnc/SimulationController.js';
+import { SimulationPanel } from './ui/SimulationPanel.js';
 
 const viewport = document.getElementById('viewport');
 const statusBar = document.getElementById('status-bar');
@@ -11,9 +16,59 @@ const toolbarEl = document.getElementById('toolbar');
 // Core systems
 const sceneManager = new SceneManager(viewport);
 const stlLoader = new STLFileLoader(sceneManager, statusBar);
+const gcodeLoader = new GCodeFileLoader(sceneManager, statusBar);
 const toolbar = new Toolbar(toolbarEl);
 const measureTool = new MeasurementTool(sceneManager);
 const orthoViews = new OrthographicViews(sceneManager, viewport);
+
+// CNC systems
+const viewportContainer = document.getElementById('viewport-container');
+const toolpathRenderer = new ToolpathRenderer(sceneManager.scene);
+const stockSimulator = new StockSimulator(sceneManager.scene);
+const simController = new SimulationController(toolpathRenderer, stockSimulator);
+const simPanel = new SimulationPanel(viewportContainer);
+simPanel.setController(simController);
+
+// CNC state
+let rapidsVisible = true;
+let stockVisible = true;
+
+// G-code loaded callback
+gcodeLoader.onGCodeLoaded = (result, filename) => {
+  // Clear previous CNC data
+  toolpathRenderer.clear();
+  stockSimulator.clear();
+  simController.stop();
+
+  // Load toolpath lines
+  toolpathRenderer.loadToolpath(result.moves, result.metadata.feedRange);
+  toolpathRenderer.setRapidsVisible(rapidsVisible);
+  toolpathRenderer.showAll();
+
+  // Initialize stock
+  stockSimulator.initFromToolpath(result.moves, result.bounds);
+  stockSimulator.setVisible(stockVisible);
+
+  // Initialize simulation controller
+  simController.init(result.moves);
+
+  // Fit camera to toolpath extents (gcodeToThree: X->X, Z->Y, Y->-Z)
+  if (sceneManager.controls) {
+    const b = result.bounds;
+    const cx = (b.min.x + b.max.x) / 2;
+    const cy = (b.min.z + b.max.z) / 2;
+    const cz = -(b.min.y + b.max.y) / 2;
+    const sx = b.max.x - b.min.x;
+    const sy = b.max.z - b.min.z;
+    const sz = b.max.y - b.min.y;
+    const maxDim = Math.max(sx, sy, sz) || 50;
+    sceneManager.controls.target.set(cx, cy, cz);
+    const dist = maxDim * 2;
+    sceneManager.perspectiveCamera.position.set(cx + dist * 0.6, cy + dist * 0.5, cz + dist * 0.8);
+    sceneManager.perspectiveCamera.lookAt(cx, cy, cz);
+    sceneManager.controls.update();
+  }
+};
 
 // Units state
 let unitsMM = true;
@@ -80,6 +135,38 @@ toolbar.on('units', () => {
   unitsMM = !unitsMM;
   toolbar.setLabel('units', unitsMM ? 'mm' : 'in');
   measureTool.setUnits(unitsMM ? 'mm' : 'in');
+});
+
+// CNC toolbar buttons
+toolbar.on('openGcode', () => gcodeLoader.openFilePicker());
+
+toolbar.on('rapids', () => {
+  rapidsVisible = !rapidsVisible;
+  toolpathRenderer.setRapidsVisible(rapidsVisible);
+  if (rapidsVisible) {
+    toolbar.buttons.rapids.classList.add('active');
+  } else {
+    toolbar.buttons.rapids.classList.remove('active');
+  }
+});
+
+toolbar.on('stock', () => {
+  stockVisible = !stockVisible;
+  stockSimulator.setVisible(stockVisible);
+  if (stockVisible) {
+    toolbar.buttons.stock.classList.add('active');
+  } else {
+    toolbar.buttons.stock.classList.remove('active');
+  }
+});
+
+toolbar.on('simulate', () => {
+  const visible = simPanel.toggle();
+  if (visible) {
+    toolbar.buttons.simulate.classList.add('active');
+  } else {
+    toolbar.buttons.simulate.classList.remove('active');
+  }
 });
 
 // OpenSCAD editor toggle

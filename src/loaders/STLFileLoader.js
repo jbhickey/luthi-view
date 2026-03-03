@@ -30,7 +30,7 @@ export class STLFileLoader {
     // Create drop overlay
     this.dropOverlay = document.createElement('div');
     this.dropOverlay.className = 'drop-overlay hidden';
-    this.dropOverlay.innerHTML = '<div class="drop-message">Drop STL file here</div>';
+    this.dropOverlay.innerHTML = '<div class="drop-message">Drop file here (STL / G-code)</div>';
     viewport.appendChild(this.dropOverlay);
 
     viewport.addEventListener('dragover', (e) => {
@@ -55,9 +55,8 @@ export class STLFileLoader {
       const file = e.dataTransfer.files[0];
       if (file && file.name.toLowerCase().endsWith('.stl')) {
         this._loadFile(file);
-      } else {
-        this._setStatus('Please drop an STL file');
       }
+      // Non-STL files (e.g., G-code) handled by other loaders
     });
   }
 

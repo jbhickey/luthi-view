@@ -19,6 +19,7 @@ export class Toolbar {
 
     // File group
     this._addButton('open', 'Open STL', 'file-group');
+    this._addButton('openGcode', 'Open G-code', 'file-group');
 
     this.container.appendChild(this._separator());
 
@@ -39,6 +40,13 @@ export class Toolbar {
 
     // Units toggle
     this._addButton('units', 'mm', 'units-group');
+
+    this.container.appendChild(this._separator());
+
+    // CNC group
+    this._addButton('rapids', 'Rapids', 'cnc-group');
+    this._addButton('stock', 'Stock', 'cnc-group');
+    this._addButton('simulate', 'Simulate', 'cnc-group');
 
     // Spacer
     const spacer = document.createElement('div');
