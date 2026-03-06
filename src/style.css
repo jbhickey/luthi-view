@@ -341,3 +341,89 @@ html, body {
   min-width: 80px;
   text-align: right;
 }
+
+/* Object Panel */
+.object-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 100%;
+  background: rgba(15, 15, 26, 0.85);
+  backdrop-filter: blur(8px);
+  border-left: 1px solid var(--border);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.object-panel.hidden {
+  display: none;
+}
+
+.object-panel-header {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  border-bottom: 1px solid var(--border);
+}
+
+.object-panel-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.object-panel-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(51, 51, 85, 0.4);
+  transition: background 0.15s;
+}
+
+.object-panel-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.object-panel-item.selected {
+  background: rgba(196, 162, 101, 0.15);
+  border-left: 2px solid var(--accent);
+}
+
+.object-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.object-name {
+  font-size: 11px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.object-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.object-btn:hover {
+  color: var(--text);
+}
+
+.object-btn-delete:hover {
+  color: #ff4466;
+}

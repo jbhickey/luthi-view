@@ -58,14 +58,14 @@ export class MeasurementTool {
   }
 
   _onClick(event) {
-    if (!this.enabled || !this.sceneManager.currentModel) return;
+    if (!this.enabled || this.sceneManager.models.size === 0) return;
 
     const rect = this.sceneManager.renderer.domElement.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
     this.raycaster.setFromCamera(this.mouse, this.sceneManager.activeCamera);
-    const intersects = this.raycaster.intersectObject(this.sceneManager.currentModel);
+    const intersects = this.raycaster.intersectObjects(this.sceneManager.getAllModels());
 
     if (intersects.length === 0) return;
 

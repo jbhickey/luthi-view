@@ -51,10 +51,11 @@ export class OrthographicViews {
   }
 
   _fitCameras() {
-    const model = this.sceneManager.currentModel;
-    if (!model) return;
+    const models = this.sceneManager.getAllModels();
+    if (models.length === 0) return;
 
-    const box = new THREE.Box3().setFromObject(model);
+    const box = new THREE.Box3();
+    models.forEach((m) => box.expandByObject(m));
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);

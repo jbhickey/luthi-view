@@ -38,6 +38,13 @@ export class Toolbar {
 
     this.container.appendChild(this._separator());
 
+    // Assembly group
+    this._addButton('move', 'Move', 'assembly-group');
+    this._addButton('rotate', 'Rotate', 'assembly-group');
+    this._addButton('objects', 'Objects', 'assembly-group');
+
+    this.container.appendChild(this._separator());
+
     // Units toggle
     this._addButton('units', 'mm', 'units-group');
 

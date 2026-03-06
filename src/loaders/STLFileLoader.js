@@ -14,12 +14,13 @@ export class STLFileLoader {
     this.fileInput = document.createElement('input');
     this.fileInput.type = 'file';
     this.fileInput.accept = '.stl';
+    this.fileInput.multiple = true;
     this.fileInput.style.display = 'none';
     document.body.appendChild(this.fileInput);
 
     this.fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
-        this._loadFile(e.target.files[0]);
+      for (const file of e.target.files) {
+        this._loadFile(file);
       }
     });
   }
@@ -52,9 +53,11 @@ export class STLFileLoader {
       e.stopPropagation();
       this.dropOverlay.classList.add('hidden');
 
-      const file = e.dataTransfer.files[0];
-      if (file && file.name.toLowerCase().endsWith('.stl')) {
-        this._loadFile(file);
+      const files = e.dataTransfer.files;
+      for (const file of files) {
+        if (file.name.toLowerCase().endsWith('.stl')) {
+          this._loadFile(file);
+        }
       }
       // Non-STL files (e.g., G-code) handled by other loaders
     });
@@ -71,17 +74,10 @@ export class STLFileLoader {
     reader.onload = (e) => {
       try {
         const geometry = this.loader.parse(e.target.result);
-        this.sceneManager.addModel(geometry);
+        this.sceneManager.addModel(geometry, file.name);
 
-        const box = this.sceneManager.getModelBoundingBox();
-        if (box) {
-          const size = box.getSize({ x: 0, y: 0, z: 0 });
-          this._setStatus(
-            `${file.name} — ${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)} mm`
-          );
-        } else {
-          this._setStatus(`Loaded ${file.name}`);
-        }
+        const count = this.sceneManager.models.size;
+        this._setStatus(`Loaded ${file.name} (${count} model${count > 1 ? 's' : ''} total)`);
       } catch (err) {
         this._setStatus(`Error loading ${file.name}: ${err.message}`);
       }
@@ -94,7 +90,7 @@ export class STLFileLoader {
     this.loader.load(
       url,
       (geometry) => {
-        this.sceneManager.addModel(geometry);
+        this.sceneManager.addModel(geometry, name || url);
         this._setStatus(`Loaded ${name || url}`);
       },
       undefined,

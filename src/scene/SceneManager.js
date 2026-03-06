@@ -5,8 +5,13 @@ import { CSS2DRenderer } from 'three/addons/renderers/CSS2DRenderer.js';
 export class SceneManager {
   constructor(container) {
     this.container = container;
-    this.currentModel = null;
+    this.models = new Map();
+    this.selectedModel = null;
+    this._modelCounter = 0;
+    this._colorPalette = [0xc4a265, 0x65a2c4, 0xa265c4, 0x65c4a2, 0xc46565, 0x8cc465];
     this.onModelLoaded = null;
+    this.onModelAdded = null;
+    this.onModelRemoved = null;
     this._started = false;
 
     this._initScene();
@@ -130,19 +135,21 @@ export class SceneManager {
     return this._started;
   }
 
-  addModel(geometry) {
-    if (this.currentModel) {
-      this.scene.remove(this.currentModel);
-      this.currentModel.geometry.dispose();
-      this.currentModel.material.dispose();
-    }
+  get currentModel() {
+    return this.selectedModel || (this.models.size > 0 ? this.models.values().next().value : null);
+  }
 
+  addModel(geometry, name) {
     geometry.computeVertexNormals();
     geometry.computeBoundingBox();
     geometry.computeBoundingSphere();
 
+    const modelId = `model_${this._modelCounter}`;
+    const color = this._colorPalette[this._modelCounter % this._colorPalette.length];
+    this._modelCounter++;
+
     const material = new THREE.MeshPhongMaterial({
-      color: 0xc4a265,
+      color: color,
       specular: 0x333333,
       shininess: 40,
       side: THREE.DoubleSide,
@@ -151,11 +158,17 @@ export class SceneManager {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = true;
     mesh.receiveShadow = true;
+    mesh.userData.modelId = modelId;
+    mesh.userData.modelName = name || modelId;
+    mesh.userData.modelColor = color;
     this.scene.add(mesh);
-    this.currentModel = mesh;
+    this.models.set(modelId, mesh);
 
-    this._fitCameraToModel(mesh);
+    this._fitCameraToAll();
 
+    if (this.onModelAdded) {
+      this.onModelAdded(mesh);
+    }
     if (this.onModelLoaded) {
       this.onModelLoaded(mesh);
     }
@@ -163,16 +176,46 @@ export class SceneManager {
     return mesh;
   }
 
-  _fitCameraToModel(mesh) {
-    const box = new THREE.Box3().setFromObject(mesh);
+  removeModel(modelId) {
+    const mesh = this.models.get(modelId);
+    if (!mesh) return;
+
+    this.scene.remove(mesh);
+    mesh.geometry.dispose();
+    mesh.material.dispose();
+    this.models.delete(modelId);
+
+    if (this.selectedModel === mesh) {
+      this.selectedModel = null;
+    }
+
+    if (this.onModelRemoved) {
+      this.onModelRemoved(modelId);
+    }
+
+    if (this.models.size > 0) {
+      this._fitCameraToAll();
+    }
+  }
+
+  getAllModels() {
+    return Array.from(this.models.values());
+  }
+
+  getModelById(id) {
+    return this.models.get(id) || null;
+  }
+
+  _fitCameraToAll() {
+    const box = this._getCombinedBoundingBox();
+    if (!box) return;
+
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
 
-    // Center the model
     this.controls.target.copy(center);
 
-    // Position perspective camera
     const dist = maxDim * 2;
     this.perspectiveCamera.position.set(
       center.x + dist * 0.6,
@@ -181,7 +224,6 @@ export class SceneManager {
     );
     this.perspectiveCamera.lookAt(center);
 
-    // Set ortho frustum
     const frustumSize = maxDim * 1.5;
     this.orthoCamera.userData.frustumSize = frustumSize;
     this._updateOrthoFrustum();
@@ -189,6 +231,15 @@ export class SceneManager {
     this.orthoCamera.lookAt(center);
 
     this.controls.update();
+  }
+
+  _getCombinedBoundingBox() {
+    if (this.models.size === 0) return null;
+    const box = new THREE.Box3();
+    this.models.forEach((mesh) => {
+      box.expandByObject(mesh);
+    });
+    return box;
   }
 
   setCamera(type) {
@@ -202,10 +253,10 @@ export class SceneManager {
   }
 
   setOrthoView(direction) {
-    if (!this.currentModel) return;
+    if (this.models.size === 0) return;
 
     this.setCamera('orthographic');
-    const box = new THREE.Box3().setFromObject(this.currentModel);
+    const box = this._getCombinedBoundingBox();
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
@@ -241,7 +292,6 @@ export class SceneManager {
   }
 
   getModelBoundingBox() {
-    if (!this.currentModel) return null;
-    return new THREE.Box3().setFromObject(this.currentModel);
+    return this._getCombinedBoundingBox();
   }
 }
