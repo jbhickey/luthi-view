@@ -8,6 +8,7 @@ export class ObjectPanel {
     this.onSelect = null;
     this.onDelete = null;
     this.onToggleVisibility = null;
+    this.onRotate = null;
 
     this._build();
   }
@@ -24,6 +25,43 @@ export class ObjectPanel {
     this.list = document.createElement('div');
     this.list.className = 'object-panel-list';
     this.panel.appendChild(this.list);
+
+    // Rotation controls section
+    this.rotateSection = document.createElement('div');
+    this.rotateSection.className = 'object-panel-rotate hidden';
+
+    const rotateHeader = document.createElement('div');
+    rotateHeader.className = 'object-panel-header';
+    rotateHeader.textContent = 'Rotate Selected';
+    this.rotateSection.appendChild(rotateHeader);
+
+    const axes = ['X', 'Y', 'Z'];
+    const angles = [90, 180, 270];
+
+    axes.forEach((axis) => {
+      const row = document.createElement('div');
+      row.className = 'rotate-row';
+
+      const label = document.createElement('span');
+      label.className = 'rotate-axis-label';
+      label.textContent = axis;
+      row.appendChild(label);
+
+      angles.forEach((deg) => {
+        const btn = document.createElement('button');
+        btn.className = 'rotate-btn';
+        btn.textContent = `${deg}\u00B0`;
+        btn.title = `Rotate ${deg}\u00B0 around ${axis}`;
+        btn.addEventListener('click', () => {
+          if (this.onRotate) this.onRotate(axis.toLowerCase(), deg);
+        });
+        row.appendChild(btn);
+      });
+
+      this.rotateSection.appendChild(row);
+    });
+
+    this.panel.appendChild(this.rotateSection);
 
     this.container.appendChild(this.panel);
   }
@@ -91,6 +129,7 @@ export class ObjectPanel {
     this.items.forEach((row, id) => {
       row.classList.toggle('selected', id === modelId);
     });
+    this.rotateSection.classList.toggle('hidden', !modelId);
   }
 
   toggle() {

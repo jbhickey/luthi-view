@@ -87,6 +87,16 @@ export class SelectionManager {
     }
   }
 
+  rotateSelected(axis, degrees) {
+    if (!this.selectedModel) return;
+    const rad = THREE.MathUtils.degToRad(degrees);
+    switch (axis) {
+      case 'x': this.selectedModel.rotateX(rad); break;
+      case 'y': this.selectedModel.rotateY(rad); break;
+      case 'z': this.selectedModel.rotateZ(rad); break;
+    }
+  }
+
   selectById(modelId) {
     const mesh = this.sceneManager.getModelById(modelId);
     if (mesh) this.select(mesh);

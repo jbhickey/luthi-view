@@ -48,6 +48,10 @@ objectPanel.onDelete = (modelId) => {
   sceneManager.removeModel(modelId);
 };
 
+objectPanel.onRotate = (axis, degrees) => {
+  selectionManager.rotateSelected(axis, degrees);
+};
+
 objectPanel.onToggleVisibility = (modelId) => {
   const mesh = sceneManager.getModelById(modelId);
   if (mesh) mesh.visible = !mesh.visible;
